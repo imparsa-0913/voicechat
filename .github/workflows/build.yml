@@ -27,18 +27,14 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
 
-      - name: Grant execute permission for gradlew
-        working-directory: project
-        run: chmod +x gradlew || true
+      - name: Setup Gradle 4.10.3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 4.10.3
 
       - name: Build with Gradle
         working-directory: project
-        run: |
-          if [ -f gradlew ]; then
-            ./gradlew build --stacktrace
-          else
-            gradle build --stacktrace
-          fi
+        run: gradle build --stacktrace
 
       - name: List built jars
         working-directory: project
