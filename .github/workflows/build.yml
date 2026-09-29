@@ -27,19 +27,36 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
 
-      - name: Build with Maven
+      - name: Grant execute permission for gradlew
         working-directory: project
-        run: mvn -B clean package
+        run: chmod +x gradlew || true
+
+      - name: Build with Gradle
+        working-directory: project
+        run: |
+          if [ -f gradlew ]; then
+            ./gradlew build --stacktrace
+          else
+            gradle build --stacktrace
+          fi
 
       - name: List built jars
         working-directory: project
-        run: ls -la target/
+        run: ls -la build/libs/
+
+      - name: Find plugin jar
+        id: find_jar
+        working-directory: project
+        run: |
+          JAR=$(find build/libs -name "*.jar" ! -name "*-sources.jar" ! -name "*-dev.jar" ! -name "*-javadoc.jar" | head -n 1)
+          echo "jar_path=$JAR" >> $GITHUB_OUTPUT
+          echo "Selected JAR: $JAR"
 
       - name: Upload Plugin Jar
         uses: actions/upload-artifact@v4
         with:
           name: SimpleVoice-Plugin
-          path: project/target/SimpleVoicePlugin-1.0.jar
+          path: project/${{ steps.find_jar.outputs.jar_path }}
           if-no-files-found: error
 
       - name: Upload to Release
@@ -47,5 +64,5 @@ jobs:
         with:
           tag_name: plugin-build-${{ github.run_number }}
           name: "Plugin Build #${{ github.run_number }}"
-          files: project/target/SimpleVoicePlugin-1.0.jar
+          files: project/${{ steps.find_jar.outputs.jar_path }}
           token: ${{ secrets.GITHUB_TOKEN }}
