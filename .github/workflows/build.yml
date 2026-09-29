@@ -1,0 +1,51 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip build.zip
+        run: |
+          unzip build.zip -d project
+          ls -la project
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Build with Maven
+        working-directory: project
+        run: mvn -B clean package
+
+      - name: List built jars
+        working-directory: project
+        run: ls -la target/
+
+      - name: Upload Plugin Jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleVoice-Plugin
+          path: project/target/SimpleVoicePlugin-1.0.jar
+          if-no-files-found: error
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: plugin-build-${{ github.run_number }}
+          name: "Plugin Build #${{ github.run_number }}"
+          files: project/target/SimpleVoicePlugin-1.0.jar
+          token: ${{ secrets.GITHUB_TOKEN }}
