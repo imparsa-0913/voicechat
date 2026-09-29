@@ -16,9 +16,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Unzip build.zip
+      - name: Unzip gradle.zip
         run: |
-          unzip build.zip -d project
+          unzip gradle.zip -d project
           ls -la project
 
       - name: Set up JDK 8
@@ -35,7 +35,6 @@ jobs:
       - name: Build with Gradle
         working-directory: project
         run: gradle build --stacktrace
-
       - name: List built jars
         working-directory: project
         run: ls -la build/libs/
